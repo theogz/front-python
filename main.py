@@ -3,7 +3,7 @@ from util.helpers import log
 
 def main():
     log('Start.')
-    log('All done.')
+    log('End.')
 
 
 if __name__ == '__main__':
