@@ -16,25 +16,41 @@ def front_decorator(front_function):
     def wrapper(*args, **kwargs):
         try:
             output = front_function(*args, **kwargs)
-            log(f'[OK] "{front_function.__name__}"')
+            log(f'[OK] - "{front_function.__name__}"')
             return output
         except Exception as e:
-            log(f'[ERROR] "{front_function.__name__}":')
+            log(f'[ERROR] - "{front_function.__name__}":')
             print(e)
             return None
     return wrapper
 
 
-def post(*args, **kwargs):
+def post(*args, attempt=1, max_attempts=1, **kwargs):
+    '''
+    Returns None (success) or Exception (failure)
+    '''
+
+    # attempt = kwargs.get('attempt', 1)
+    # max_attempts = kwargs.get('max_attempts', 1)
+    assert attempt <= max_attempts, 'Problem with "attempts" parameters'
+
     r = requests.post(*args, **kwargs)
     print(f'POST {r.url}')
 
     if r.status_code < 400:
-        print('Success.')
+        print(f'[OK] - status code: {r.status_code}')
         return
 
-    print(r.text)
-    raise requests.exceptions.HTTPError(r.status_code)
+    if r.status_code < 500 or attempt == max_attempts:
+        print(f'[ERROR] - status code: {r.status_code} ({r.text})')
+        raise requests.exceptions.HTTPError(r.status_code)
+
+    next_attempt = attempt + 1
+    print(
+        f'[WARNING] - status code: {r.status_code} ({r.text}), '
+        f'retrying ({next_attempt} / {max_attempts})'
+    )
+    return post(*args, attempt=next_attempt, max_attempts=max_attempts, **kwargs)
 
 
 def queue_draft(
