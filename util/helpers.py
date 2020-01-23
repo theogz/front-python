@@ -38,12 +38,12 @@ def post(route, attempt=1, max_attempts=1, **kwargs):
     # Sucess.
     if r.status_code < 400:
         log(f'[OK] - status code: {r.status_code}')
-        return
+        return r.status_code, None
 
     # Max attempts or 4xx error.
     if r.status_code < 500 or attempt == max_attempts:
         log(f'[ERROR] - status code: {r.status_code} - {r.text}')
-        raise requests.exceptions.HTTPError(r.status_code)
+        return r.status_code, r.text
 
     # Try one more time.
     next_attempt = attempt + 1

@@ -16,9 +16,7 @@ def queue_draft(
     if to_array is not None:
         data['to'] = to_array
 
-    post(json=data, route=route, max_attempts=2)
-
-    return
+    return post(json=data, route=route, max_attempts=2)
 
 
 def create_draft_reply(
@@ -33,6 +31,4 @@ def create_draft_reply(
         'body': body
     }
 
-    post(json=data, route=route, max_attempts=1)
-
-    return
+    return post(json=data, route=route, max_attempts=1)
