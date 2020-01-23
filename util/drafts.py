@@ -19,3 +19,20 @@ def queue_draft(
     post(json=data, route=route, max_attempts=2)
 
     return
+
+
+def create_draft_reply(
+    conversation_id, author_email, shared_channel_address,
+    body
+):
+    route = f'/conversations/{conversation_id}/drafts'
+
+    data = {
+        'channel_id': f'alt:address:{shared_channel_address}',
+        'author_id': f'alt:email:{author_email}',
+        'body': body
+    }
+
+    post(json=data, route=route, max_attempts=1)
+
+    return
