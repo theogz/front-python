@@ -27,7 +27,7 @@ def front_decorator(front_function):
 
 def post(route, attempt=1, max_attempts=1, **kwargs):
     '''
-    Returns None (success) or Exception (failure)
+    Returns tuple with (status code, error message)
     '''
     assert attempt <= max_attempts, 'Problem with "attempts" parameters'
     URL = f'{FRONT_BASE_URL}{route}'
@@ -35,7 +35,7 @@ def post(route, attempt=1, max_attempts=1, **kwargs):
     log(f'POST {URL}')
     r = requests.post(url=URL, headers=FRONT_HEADERS, **kwargs)
 
-    # Sucess.
+    # Success.
     if r.status_code < 400:
         log(f'[OK] - status code: {r.status_code}')
         return r.status_code, None
@@ -52,3 +52,32 @@ def post(route, attempt=1, max_attempts=1, **kwargs):
         f'retrying ({next_attempt} / {max_attempts})'
     )
     return post(route=route, attempt=next_attempt, max_attempts=max_attempts, **kwargs)
+
+
+def get(route, attempt=1, max_attempts=1, **kwargs):
+    '''
+    Returns tuple with (body, status code, error message)
+    '''
+    assert attempt <= max_attempts, 'Problem with "attempts" parameters'
+    URL = f'{FRONT_BASE_URL}{route}'
+
+    log(f'GET {URL}')
+    r = requests.get(url=URL, headers=FRONT_HEADERS, **kwargs)
+
+    # Success.
+    if r.status_code < 400:
+        log(f'[OK] - status code: {r.status_code}')
+        return r.json(), r.status_code, None
+
+    # Max attempts or 4xx error.
+    if r.status_code < 500 or attempt == max_attempts:
+        log(f'[ERROR] - status code: {r.status_code} - {r.text}')
+        return None, r.status_code, r.text
+
+    # Try one more time.
+    next_attempt = attempt + 1
+    log(
+        f'[WARNING] - status code: {r.status_code} - {r.text}, '
+        f'retrying ({next_attempt} / {max_attempts})'
+    )
+    return get(route=route, attempt=next_attempt, max_attempts=max_attempts, **kwargs)
